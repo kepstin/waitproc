@@ -1,0 +1,87 @@
+.Dd August 5, 2010
+.Dt WAITPROC \&1 \&
+.Os WAITPROC
+.Sh NAME
+.Nm waitproc
+.Nd wait for an arbitrary process to exit
+.Sh SYNOPSIS
+.Nm
+.Op Fl t | -timeout Ar TIMEOUT
+.Ar PID
+.Sh DESCRIPTION
+The
+.Nm
+program is designed to expand on the limitations of the
+.Xr wait 1
+program, by allowing you to wait for a process which is not a child of the
+current shell to exit.
+It is otherwise designed to be mostly compatible with the interface of wait,
+except that it can only wait for a single process to exit.
+As well, some useful extensions have been added, such as support for timeouts.
+.Sh OPTIONS
+.Bl -tag -width 1234567
+.It Fl t | -timeout Ar TIMEOUT
+Specify the amount of time to wait for the process specified by
+.Ar PID
+to exit.
+This should be an integer number of seconds.
+The default timeout is 0, which means that
+.Nm
+will wait forever for the process to exit.
+.El
+.Sh EXIT CODE
+The exit code of
+.Nm
+is designed to allow you to determine the status of the process that exited,
+but some exit code values are reserved for internal error conditions.
+The exit code will be one of the following values:
+.Bl -tag -width 123-456
+.It 0-126
+The exit code of the process indicated by
+.Ar PID .
+.It 127
+There is no process with the pid
+.Ar PID
+currently running on the system.
+.It 128-239
+The process with pid
+.Ar PID
+exited because of a signal.
+You can determine which signal by subtracting 127 from the exit code.
+.It 253
+.Nm
+was unable to attach to the process
+.Ar PID ,
+most likely due to a permissions issue.
+A diagnostic message will be printed to standard error.
+.It 254
+An argument syntax or usage error was detected.
+A diagnostic message will be printed to standard error.
+.It 255
+The process
+.Ar PID
+was successfully attached to, but did not exit before
+.Ar TIMEOUT
+expired.
+.El
+.Pp
+The exit codes 240-252 are reserved.
+You should assume that any exit code in the range 240-255 means that
+.Nm
+did not wait for the process
+.Ar PID
+to exit.
+.Sh AUTHORS
+.An "Calvin Walton" Aq calvin.walton@gmail.com
+.Sh BUGS
+Because of an implementation detail of
+.Xr ptrace 2 ,
+using
+.Nm
+on a process will prevent the real parent of the process from being able to use
+.Xr wait 2
+or
+.Xr waitpid 2
+to detect when the process has stopped.
+For many fire-and-forget processes this won't matter, but some might behave
+incorrectly.
